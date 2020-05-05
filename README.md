@@ -1,2 +1,2 @@
 # GoStack
-Todo material utilizado para completar o curso GoStack 10.0 da RocketSeat.
+Todo material utilizado para completar o curso GoStack 11.0 da RocketSeat.
