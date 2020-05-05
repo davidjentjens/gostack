@@ -11,6 +11,7 @@ const usersRouter = Router();
 const upload = multer(uploadConfig);
 
 usersRouter.post('/', async (req, res) => {
+  console.log('err');
   const { name, email, password } = req.body;
 
   const userService = new CreateUserService();
