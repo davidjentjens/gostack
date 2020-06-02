@@ -49,10 +49,13 @@ class ListProviderMonthAvailabilityService {
         appointment => getDate(appointment.date) === day,
       );
 
+      const currentDate = new Date();
+
+      const dateIsAfterCurrentDate = isAfter(currentDate, compareDate);
+
       return {
         day,
-        available:
-          appointmentsInDay.length < 10 && isAfter(new Date(), compareDate),
+        available: appointmentsInDay.length < 10 && !dateIsAfterCurrentDate,
       };
     });
 
