@@ -19,6 +19,12 @@ export const BackButton = styled.TouchableOpacity`
   margin-top: 64px;
 `;
 
+export const SignOutButton = styled.TouchableOpacity`
+  position: absolute;
+  right: 24px;
+  top: 64px;
+`;
+
 export const UserAvatarButton = styled.TouchableOpacity``;
 
 export const UserAvatar = styled.Image`

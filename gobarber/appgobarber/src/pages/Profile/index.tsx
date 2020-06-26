@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import * as Yup from 'yup';
 import Icon from 'react-native-vector-icons/Feather';
+import ImagePicker from 'react-native-image-picker';
 
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
@@ -28,6 +29,7 @@ import {
   BackButton,
   UserAvatarButton,
   UserAvatar,
+  SignOutButton,
 } from './styles';
 
 interface ProfileFormData {
@@ -39,7 +41,7 @@ interface ProfileFormData {
 }
 
 const Profile: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, signOut } = useAuth();
 
   const navigation = useNavigation();
   const formRef = useRef<FormHandles>(null);
@@ -49,7 +51,7 @@ const Profile: React.FC = () => {
   const passwordInputRef = useRef<TextInput>(null);
   const confirmPasswordInputRef = useRef<TextInput>(null);
 
-  const handleProfile = useCallback(
+  const handleSubmit = useCallback(
     async (data: ProfileFormData) => {
       try {
         formRef.current?.setErrors({});
@@ -74,7 +76,7 @@ const Profile: React.FC = () => {
             .oneOf([Yup.ref('password'), null], 'Confirmação incorreta'),
         });
 
-        await schema.validate(schema, {
+        await schema.validate(data, {
           abortEarly: false,
         });
 
@@ -110,6 +112,7 @@ const Profile: React.FC = () => {
           const errors = getValidationErrors(err);
 
           formRef.current?.setErrors(errors);
+
           return;
         }
 
@@ -121,6 +124,43 @@ const Profile: React.FC = () => {
     },
     [navigation, updateUser],
   );
+
+  const handleUpdateAvatar = useCallback(() => {
+    ImagePicker.showImagePicker(
+      {
+        title: 'Selecione um avatar',
+        cancelButtonTitle: 'Cancelar',
+        takePhotoButtonTitle: 'Usar camera',
+        chooseFromLibraryButtonTitle: 'Escolher da galeria',
+      },
+      (response) => {
+        if (response.didCancel) {
+          return;
+        }
+
+        if (response.error) {
+          Alert.alert('Erro ao atualizar seu avatar.');
+          return;
+        }
+
+        const data = new FormData();
+
+        data.append('avatar', {
+          type: 'image/jpeg',
+          name: `${user.id}.jpeg`,
+          uri: response.uri,
+        });
+
+        try {
+          api.patch('users/avatar', data).then((apiResponse) => {
+            updateUser(apiResponse.data);
+          });
+        } catch (err) {
+          Alert.alert('err');
+        }
+      },
+    );
+  }, [updateUser, user.id]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -138,7 +178,11 @@ const Profile: React.FC = () => {
               <Icon name="chevron-left" size={24} color="#999591" />
             </BackButton>
 
-            <UserAvatarButton onPress={() => {}}>
+            <SignOutButton onPress={signOut}>
+              <Icon name="power" size={24} color="#cc3535" />
+            </SignOutButton>
+
+            <UserAvatarButton onPress={handleUpdateAvatar}>
               <UserAvatar source={{ uri: user.avatar_url }} />
             </UserAvatarButton>
 
@@ -146,7 +190,7 @@ const Profile: React.FC = () => {
               <Title>Meu perfil</Title>
             </View>
 
-            <Form initialData={user} ref={formRef} onSubmit={handleProfile}>
+            <Form initialData={user} ref={formRef} onSubmit={handleSubmit}>
               <Input
                 autoCapitalize="words"
                 name="name"
